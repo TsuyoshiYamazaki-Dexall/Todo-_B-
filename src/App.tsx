@@ -459,14 +459,10 @@ export default function App() {
                     </div>
                   ) : (
                     <div>
-                      {/* パイプラインヘッダー */}
-                      <div style={{ display: 'grid', gridTemplateColumns: '200px 1fr 120px 80px', gap: '12px', marginBottom: '12px', padding: '0 12px' }}>
+                      {/* ヘッダー */}
+                      <div style={{ display: 'grid', gridTemplateColumns: '180px 1fr 100px 80px', gap: '12px', marginBottom: '12px', padding: '0 12px' }}>
                         <div style={{ fontSize: '0.75rem', fontWeight: '600', color: '#6B7280' }}>タスク名</div>
-                        <div style={{ display: 'flex', gap: '4px' }}>
-                          {DEFAULT_SUBTASKS.slice(0, 6).map((st, i) => (
-                            <div key={st} style={{ flex: 1, fontSize: '0.65rem', color: '#9CA3AF', textAlign: 'center' }}>{st}</div>
-                          ))}
-                        </div>
+                        <div style={{ fontSize: '0.75rem', fontWeight: '600', color: '#6B7280' }}>サブタスク（クリックで完了）</div>
                         <div style={{ fontSize: '0.75rem', fontWeight: '600', color: '#6B7280', textAlign: 'center' }}>期限</div>
                         <div style={{ fontSize: '0.75rem', fontWeight: '600', color: '#6B7280', textAlign: 'center' }}>操作</div>
                       </div>
@@ -481,7 +477,7 @@ export default function App() {
                             key={task.id}
                             style={{
                               display: 'grid',
-                              gridTemplateColumns: '200px 1fr 120px 80px',
+                              gridTemplateColumns: '180px 1fr 100px 80px',
                               gap: '12px',
                               padding: '12px',
                               background: task.completed ? '#F9FAFB' : '#FFF',
@@ -489,6 +485,7 @@ export default function App() {
                               marginBottom: '8px',
                               border: '1px solid #E5E7EB',
                               opacity: task.completed ? 0.6 : 1,
+                              alignItems: 'center',
                             }}
                           >
                             {/* タスク名 */}
@@ -518,52 +515,62 @@ export default function App() {
                               </span>
                             </div>
 
-                            {/* サブタスクパイプライン */}
-                            <div style={{ display: 'flex', gap: '2px', alignItems: 'center' }}>
+                            {/* サブタスクリスト */}
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center' }}>
                               {task.subTasks.map((st, index) => (
                                 <button
                                   key={st.id}
                                   onClick={() => !task.completed && handleSubTaskComplete(task.id, st.id)}
                                   disabled={task.completed}
                                   style={{
-                                    flex: 1,
-                                    height: '28px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '6px',
+                                    padding: '6px 12px',
                                     background: st.completed
                                       ? PIPELINE_COLORS[index % PIPELINE_COLORS.length]
-                                      : '#E5E7EB',
-                                    border: 'none',
+                                      : '#F9FAFB',
+                                    border: st.completed ? 'none' : '2px solid #E5E7EB',
+                                    borderRadius: '20px',
                                     cursor: task.completed ? 'default' : 'pointer',
-                                    borderRadius: index === 0 ? '6px 0 0 6px' : index === task.subTasks.length - 1 ? '0 6px 6px 0' : '0',
-                                    position: 'relative',
                                     transition: 'all 0.2s',
+                                    fontSize: '0.8rem',
+                                    fontWeight: '500',
+                                    color: st.completed ? '#FFF' : '#4B5563',
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    if (!task.completed && !st.completed) {
+                                      e.currentTarget.style.background = '#E5E7EB';
+                                      e.currentTarget.style.borderColor = '#9CA3AF';
+                                    }
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    if (!task.completed && !st.completed) {
+                                      e.currentTarget.style.background = '#F9FAFB';
+                                      e.currentTarget.style.borderColor = '#E5E7EB';
+                                    }
+                                  }}
+                                >
+                                  {/* チェックボックス */}
+                                  <span style={{
+                                    width: '18px',
+                                    height: '18px',
+                                    borderRadius: '4px',
+                                    background: st.completed ? 'rgba(255,255,255,0.3)' : '#FFF',
+                                    border: st.completed ? 'none' : '2px solid #D1D5DB',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                  }}
-                                  title={st.name}
-                                >
-                                  {st.completed && (
-                                    <span style={{ color: '#FFF', fontSize: '0.7rem', fontWeight: '600' }}>✓</span>
-                                  )}
-                                  {/* 矢印形状 */}
-                                  {index < task.subTasks.length - 1 && (
-                                    <div style={{
-                                      position: 'absolute',
-                                      right: '-8px',
-                                      width: 0,
-                                      height: 0,
-                                      borderTop: '14px solid transparent',
-                                      borderBottom: '14px solid transparent',
-                                      borderLeft: `8px solid ${st.completed ? PIPELINE_COLORS[index % PIPELINE_COLORS.length] : '#E5E7EB'}`,
-                                      zIndex: 1,
-                                    }} />
-                                  )}
+                                    fontSize: '0.75rem',
+                                    flexShrink: 0,
+                                  }}>
+                                    {st.completed && '✓'}
+                                  </span>
+                                  {st.name}
                                 </button>
                               ))}
                               {task.subTasks.length === 0 && (
-                                <div style={{ flex: 1, height: '28px', background: '#E5E7EB', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                  <span style={{ fontSize: '0.7rem', color: '#9CA3AF' }}>サブタスクなし</span>
-                                </div>
+                                <span style={{ fontSize: '0.8rem', color: '#9CA3AF' }}>サブタスクなし</span>
                               )}
                             </div>
 
