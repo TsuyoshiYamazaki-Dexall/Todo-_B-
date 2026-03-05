@@ -310,6 +310,104 @@ const styles: { [key: string]: React.CSSProperties } = {
     pointerEvents: 'none' as const,
     zIndex: 2000,
   },
+  character: {
+    position: 'fixed' as const,
+    left: '10px',
+    bottom: '80px',
+    width: '80px',
+    height: '80px',
+    zIndex: 500,
+    cursor: 'pointer',
+    transition: 'transform 0.2s',
+  },
+  characterInner: {
+    width: '100%',
+    height: '100%',
+    backgroundImage: 'url(characters.png)',
+    backgroundSize: '500% 200%',
+    backgroundPosition: '0% 0%',
+    imageRendering: 'auto' as const,
+  },
+  characterBubble: {
+    position: 'absolute' as const,
+    bottom: '90px',
+    left: '0',
+    background: '#fff',
+    padding: '8px 12px',
+    borderRadius: '12px',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+    fontSize: '0.75rem',
+    whiteSpace: 'nowrap' as const,
+    animation: 'fadeIn 0.3s ease',
+  },
+};
+
+// キャラクターコンポーネント
+const Character: React.FC<{
+  message?: string | null;
+  expression?: 'normal' | 'happy' | 'worried';
+  onClick?: () => void;
+}> = ({ message, expression = 'normal', onClick }) => {
+  const [isJumping, setIsJumping] = useState(false);
+  const [blinkState, setBlinkState] = useState(false);
+
+  // 定期的にまばたき
+  useEffect(() => {
+    const blinkInterval = setInterval(() => {
+      setBlinkState(true);
+      setTimeout(() => setBlinkState(false), 150);
+    }, 3000 + Math.random() * 2000);
+
+    return () => clearInterval(blinkInterval);
+  }, []);
+
+  // たまにジャンプ
+  useEffect(() => {
+    const jumpInterval = setInterval(() => {
+      if (Math.random() > 0.7) {
+        setIsJumping(true);
+        setTimeout(() => setIsJumping(false), 500);
+      }
+    }, 4000);
+
+    return () => clearInterval(jumpInterval);
+  }, []);
+
+  return (
+    <div
+      style={{
+        ...styles.character,
+        transform: isJumping ? 'translateY(-10px)' : 'translateY(0)',
+      }}
+      onClick={onClick}
+    >
+      <div
+        style={{
+          ...styles.characterInner,
+          opacity: blinkState ? 0.9 : 1,
+          transform: expression === 'happy' ? 'scale(1.05)' :
+                     expression === 'worried' ? 'scale(0.95)' : 'scale(1)',
+        }}
+      />
+      {message && (
+        <div style={styles.characterBubble}>
+          {message}
+        </div>
+      )}
+      <style>
+        {`
+          @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+          }
+          @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+        `}
+      </style>
+    </div>
+  );
 };
 
 // 優先度の色
@@ -331,12 +429,22 @@ const getPriorityText = (priority: number) => {
 };
 
 // 期限の警告レベル
-const getDeadlineWarning = (daysUntil: number) => {
-  if (daysUntil < 0) return { level: 'overdue', text: '期限切れ', emoji: '😰' };
-  if (daysUntil === 0) return { level: 'danger', text: '今日まで', emoji: '😱' };
-  if (daysUntil <= 2) return { level: 'danger', text: `あと${daysUntil}日`, emoji: '😨' };
-  if (daysUntil <= 5) return { level: 'warning', text: `あと${daysUntil}日`, emoji: '😅' };
-  return { level: 'safe', text: `あと${daysUntil}日`, emoji: '😊' };
+const getDeadlineWarning = (deadline: string) => {
+  const now = new Date();
+  const deadlineDate = new Date(deadline);
+  const diffMs = deadlineDate.getTime() - now.getTime();
+  const diffHours = Math.ceil(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+  const timeStr = deadlineDate.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
+  const dateStr = deadlineDate.toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' });
+
+  if (diffMs < 0) return { level: 'overdue', text: '期限切れ', emoji: '😰' };
+  if (diffHours <= 1) return { level: 'danger', text: `あと${Math.max(0, Math.ceil(diffMs / 60000))}分`, emoji: '😱' };
+  if (diffHours <= 24) return { level: 'danger', text: `あと${diffHours}時間 (${timeStr})`, emoji: '😨' };
+  if (diffDays <= 2) return { level: 'danger', text: `あと${diffDays}日 (${dateStr} ${timeStr})`, emoji: '😨' };
+  if (diffDays <= 5) return { level: 'warning', text: `あと${diffDays}日 (${dateStr})`, emoji: '😅' };
+  return { level: 'safe', text: `あと${diffDays}日 (${dateStr})`, emoji: '😊' };
 };
 
 export default function App() {
@@ -346,6 +454,33 @@ export default function App() {
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [characterMessage, setCharacterMessage] = useState<string | null>(null);
+  const [characterExpression, setCharacterExpression] = useState<'normal' | 'happy' | 'worried'>('normal');
+
+  // キャラクターがランダムに話す
+  useEffect(() => {
+    const messages = [
+      'がんばってね！',
+      '今日もお疲れさま！',
+      'タスク確認した？',
+      '応援してるよ！',
+      '休憩も大事だよ〜',
+    ];
+
+    const interval = setInterval(() => {
+      if (Math.random() > 0.6) {
+        const msg = messages[Math.floor(Math.random() * messages.length)];
+        setCharacterMessage(msg);
+        setCharacterExpression('happy');
+        setTimeout(() => {
+          setCharacterMessage(null);
+          setCharacterExpression('normal');
+        }, 3000);
+      }
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   // タスク追加フォーム
   const [newTaskName, setNewTaskName] = useState('');
@@ -428,10 +563,17 @@ export default function App() {
     if (completedCount > prevCompletedCount) {
       playCompleteSound();
       showMessage('えらい！🎉');
+      setCharacterMessage('すごい！えらいね！');
+      setCharacterExpression('happy');
+      setTimeout(() => {
+        setCharacterMessage(null);
+        setCharacterExpression('normal');
+      }, 2500);
 
       if (completedCount === 3) {
         setTimeout(() => {
           playFanfare();
+          setCharacterMessage('3つも終わったの！？');
           showMessage('3つ完了！素晴らしい！✨');
         }, 500);
       }
@@ -570,8 +712,7 @@ export default function App() {
             ) : (
               incompleteTasks.map((task) => {
                 const progress = getProgressPercent(task);
-                const daysUntil = getDaysUntilDeadline(task.deadline);
-                const warning = getDeadlineWarning(daysUntil);
+                const warning = getDeadlineWarning(task.deadline);
                 const priorityStyle = getPriorityColor(task.priority);
 
                 return (
@@ -747,7 +888,7 @@ export default function App() {
             <div style={styles.formGroup}>
               <label style={styles.label}>期限</label>
               <input
-                type="date"
+                type="datetime-local"
                 value={newTaskDeadline}
                 onChange={(e) => setNewTaskDeadline(e.target.value)}
                 style={styles.input}
@@ -992,7 +1133,7 @@ export default function App() {
             <div style={styles.formGroup}>
               <label style={styles.label}>期限</label>
               <input
-                type="date"
+                type="datetime-local"
                 value={newTaskDeadline}
                 onChange={(e) => setNewTaskDeadline(e.target.value)}
                 style={styles.input}
@@ -1117,6 +1258,21 @@ export default function App() {
           </style>
         </>
       )}
+
+      {/* キャラクター */}
+      <Character
+        message={characterMessage}
+        expression={characterExpression}
+        onClick={() => {
+          const responses = ['なあに？', 'どうしたの？', 'がんばろう！', '👋'];
+          setCharacterMessage(responses[Math.floor(Math.random() * responses.length)]);
+          setCharacterExpression('happy');
+          setTimeout(() => {
+            setCharacterMessage(null);
+            setCharacterExpression('normal');
+          }, 2000);
+        }}
+      />
 
       {/* メッセージ */}
       {message && (
