@@ -20,17 +20,47 @@ import {
 } from './sounds';
 import ClockCharacter from './ClockCharacter';
 
-// デフォルトサブタスクリスト
-const DEFAULT_SUBTASKS = [
-  '情報収集',
-  '構成作成',
-  '執筆',
-  '提出',
-  'レビュー',
-  '修正',
-  '確認',
-  '完了報告',
-];
+// サブタスクカテゴリ
+const SUBTASK_CATEGORIES = {
+  '📋 要件・設計': [
+    '要件確認', '仕様確認', '不明点整理', '機能整理', '優先度整理', '受入条件確認',
+    '画面設計', '構造整理', 'クラス設計', 'API確認', 'レスポンス定義', 'エンドポイント整理',
+    'テーブル確認', 'ER図確認', '処理整理', '例外整理',
+  ],
+  '💻 開発': [
+    'ブランチ作成', 'ディレクトリ準備', 'IDE設定', '依存確認', 'コード確認', '箇所特定',
+    '関数作成', 'API実装', '画面実装', 'ロジック実装',
+  ],
+  '👀 レビュー': [
+    'レビュー依頼', 'プルリクエスト', '差分整理', 'コメント確認', '指摘理解', '修正対応',
+    '差分確認', '再依頼',
+  ],
+  '🧪 テスト': [
+    'ケース作成', 'テスト作成', 'データ作成', '環境準備', '正常系確認', '異常系確認',
+    '境界確認', '結果確認', 'ログ確認',
+  ],
+  '🐛 デバッグ': [
+    '再現確認', 'ログ確認', 'トレース確認', '原因特定', '方針整理', '修正実装',
+    '再テスト', '影響確認',
+  ],
+  '📝 ドキュメント': [
+    'README更新', '仕様更新', 'API更新', '設計更新', '履歴記録', '手順作成', 'コメント追加',
+  ],
+  '📊 タスク管理': [
+    'タスク整理', '優先度設定', '工数見積', 'Todo作成', '状況更新', '完了記録', 'リスク整理',
+  ],
+  '🔧 環境構築': [
+    'Git導入', 'クローン', 'セットアップ', '変数設定', 'サーバー起動', 'パッケージ導入',
+    'DB起動', '接続確認',
+  ],
+  '💬 コミュニケーション': [
+    'スクラム参加', '進捗共有', '課題共有', '相談整理', '会議参加', '依頼送信',
+    'チャット確認', '報告送信',
+  ],
+};
+
+// 全サブタスクのフラットリスト
+const DEFAULT_SUBTASKS = Object.values(SUBTASK_CATEGORIES).flat();
 
 // キャラクターのセリフ
 const CHARACTER_MESSAGES = {
@@ -691,32 +721,40 @@ export default function App() {
 
                 <div style={{ marginBottom: '24px' }}>
                   <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>サブタスク</label>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
-                    {DEFAULT_SUBTASKS.map((st) => (
-                      <button
-                        key={st}
-                        onClick={() => {
-                          if (selectedSubTasks.includes(st)) {
-                            setSelectedSubTasks(selectedSubTasks.filter((s) => s !== st));
-                          } else {
-                            setSelectedSubTasks([...selectedSubTasks, st]);
-                          }
-                        }}
-                        style={{
-                          padding: '8px 14px',
-                          borderRadius: '20px',
-                          border: 'none',
-                          background: selectedSubTasks.includes(st)
-                            ? 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)'
-                            : '#F3F4F6',
-                          color: selectedSubTasks.includes(st) ? '#FFF' : '#374151',
-                          fontSize: '0.85rem',
-                          cursor: 'pointer',
-                        }}
-                      >
-                        {selectedSubTasks.includes(st) && '✓ '}
-                        {st}
-                      </button>
+                  <div style={{ maxHeight: '300px', overflowY: 'auto', border: '1px solid #E5E7EB', borderRadius: '12px', padding: '12px' }}>
+                    {Object.entries(SUBTASK_CATEGORIES).map(([category, subtasks]) => (
+                      <div key={category} style={{ marginBottom: '12px' }}>
+                        <div style={{ fontSize: '0.8rem', fontWeight: '600', color: '#6B7280', marginBottom: '6px' }}>{category}</div>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                          {subtasks.map((st) => (
+                            <button
+                              key={st}
+                              onClick={() => {
+                                if (selectedSubTasks.includes(st)) {
+                                  setSelectedSubTasks(selectedSubTasks.filter((s) => s !== st));
+                                } else {
+                                  setSelectedSubTasks([...selectedSubTasks, st]);
+                                }
+                              }}
+                              style={{
+                                padding: '5px 10px',
+                                borderRadius: '14px',
+                                border: 'none',
+                                background: selectedSubTasks.includes(st)
+                                  ? 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)'
+                                  : '#F3F4F6',
+                                color: selectedSubTasks.includes(st) ? '#FFF' : '#374151',
+                                fontSize: '0.75rem',
+                                cursor: 'pointer',
+                                transition: 'all 0.15s',
+                              }}
+                            >
+                              {selectedSubTasks.includes(st) && '✓ '}
+                              {st}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
                     ))}
                   </div>
 
@@ -1031,29 +1069,36 @@ export default function App() {
 
             <div style={{ marginBottom: '20px' }}>
               <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>サブタスク</label>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                {DEFAULT_SUBTASKS.map((st) => (
-                  <button
-                    key={st}
-                    onClick={() => {
-                      if (selectedSubTasks.includes(st)) {
-                        setSelectedSubTasks(selectedSubTasks.filter((s) => s !== st));
-                      } else {
-                        setSelectedSubTasks([...selectedSubTasks, st]);
-                      }
-                    }}
-                    style={{
-                      padding: '6px 12px',
-                      borderRadius: '16px',
-                      border: 'none',
-                      background: selectedSubTasks.includes(st) ? 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)' : '#F3F4F6',
-                      color: selectedSubTasks.includes(st) ? '#FFF' : '#374151',
-                      fontSize: '0.8rem',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    {selectedSubTasks.includes(st) && '✓ '}{st}
-                  </button>
+              <div style={{ maxHeight: '200px', overflowY: 'auto', border: '1px solid #E5E7EB', borderRadius: '10px', padding: '10px' }}>
+                {Object.entries(SUBTASK_CATEGORIES).map(([category, subtasks]) => (
+                  <div key={category} style={{ marginBottom: '10px' }}>
+                    <div style={{ fontSize: '0.75rem', fontWeight: '600', color: '#6B7280', marginBottom: '4px' }}>{category}</div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                      {subtasks.map((st) => (
+                        <button
+                          key={st}
+                          onClick={() => {
+                            if (selectedSubTasks.includes(st)) {
+                              setSelectedSubTasks(selectedSubTasks.filter((s) => s !== st));
+                            } else {
+                              setSelectedSubTasks([...selectedSubTasks, st]);
+                            }
+                          }}
+                          style={{
+                            padding: '4px 8px',
+                            borderRadius: '12px',
+                            border: 'none',
+                            background: selectedSubTasks.includes(st) ? 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)' : '#F3F4F6',
+                            color: selectedSubTasks.includes(st) ? '#FFF' : '#374151',
+                            fontSize: '0.7rem',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          {selectedSubTasks.includes(st) && '✓ '}{st}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 ))}
               </div>
             </div>
