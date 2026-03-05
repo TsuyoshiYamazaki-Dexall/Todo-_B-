@@ -18,6 +18,7 @@ import {
   playBigFanfare,
   playEncouragementSound,
 } from './sounds';
+import ClockCharacter from './ClockCharacter';
 
 // デフォルトサブタスクリスト
 const DEFAULT_SUBTASKS = [
@@ -310,104 +311,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     pointerEvents: 'none' as const,
     zIndex: 2000,
   },
-  character: {
-    position: 'fixed' as const,
-    left: '10px',
-    bottom: '80px',
-    width: '80px',
-    height: '80px',
-    zIndex: 500,
-    cursor: 'pointer',
-    transition: 'transform 0.2s',
-  },
-  characterInner: {
-    width: '100%',
-    height: '100%',
-    backgroundImage: 'url(characters.png)',
-    backgroundSize: '500% 200%',
-    backgroundPosition: '0% 0%',
-    imageRendering: 'auto' as const,
-  },
-  characterBubble: {
-    position: 'absolute' as const,
-    bottom: '90px',
-    left: '0',
-    background: '#fff',
-    padding: '8px 12px',
-    borderRadius: '12px',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-    fontSize: '0.75rem',
-    whiteSpace: 'nowrap' as const,
-    animation: 'fadeIn 0.3s ease',
-  },
-};
-
-// キャラクターコンポーネント
-const Character: React.FC<{
-  message?: string | null;
-  expression?: 'normal' | 'happy' | 'worried';
-  onClick?: () => void;
-}> = ({ message, expression = 'normal', onClick }) => {
-  const [isJumping, setIsJumping] = useState(false);
-  const [blinkState, setBlinkState] = useState(false);
-
-  // 定期的にまばたき
-  useEffect(() => {
-    const blinkInterval = setInterval(() => {
-      setBlinkState(true);
-      setTimeout(() => setBlinkState(false), 150);
-    }, 3000 + Math.random() * 2000);
-
-    return () => clearInterval(blinkInterval);
-  }, []);
-
-  // たまにジャンプ
-  useEffect(() => {
-    const jumpInterval = setInterval(() => {
-      if (Math.random() > 0.7) {
-        setIsJumping(true);
-        setTimeout(() => setIsJumping(false), 500);
-      }
-    }, 4000);
-
-    return () => clearInterval(jumpInterval);
-  }, []);
-
-  return (
-    <div
-      style={{
-        ...styles.character,
-        transform: isJumping ? 'translateY(-10px)' : 'translateY(0)',
-      }}
-      onClick={onClick}
-    >
-      <div
-        style={{
-          ...styles.characterInner,
-          opacity: blinkState ? 0.9 : 1,
-          transform: expression === 'happy' ? 'scale(1.05)' :
-                     expression === 'worried' ? 'scale(0.95)' : 'scale(1)',
-        }}
-      />
-      {message && (
-        <div style={styles.characterBubble}>
-          {message}
-        </div>
-      )}
-      <style>
-        {`
-          @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-8px); }
-          }
-          @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-          }
-        `}
-      </style>
-    </div>
-  );
 };
 
 // 優先度の色
@@ -1260,11 +1163,12 @@ export default function App() {
       )}
 
       {/* キャラクター */}
-      <Character
+      <ClockCharacter
         message={characterMessage}
         expression={characterExpression}
+        modalOpen={modal !== 'none'}
         onClick={() => {
-          const responses = ['なあに？', 'どうしたの？', 'がんばろう！', '👋'];
+          const responses = ['なあに？', 'どうしたの？', 'がんばろう！', '✨', '一緒にがんばろ！'];
           setCharacterMessage(responses[Math.floor(Math.random() * responses.length)]);
           setCharacterExpression('happy');
           setTimeout(() => {
