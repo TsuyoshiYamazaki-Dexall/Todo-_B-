@@ -32,6 +32,49 @@ const DEFAULT_SUBTASKS = [
   '完了報告',
 ];
 
+// キャラクターのセリフ
+const CHARACTER_MESSAGES = {
+  // タスク登録時
+  taskAdded: [
+    'よしっ、今日のミッション登録だね！📝✨',
+    'いいねいいね！準備オッケー！👍',
+    'ナイス！これからやっていこう！🚀',
+    'よーし、スタートだ！💡',
+  ],
+  // 1つ目のタスク完了
+  firstComplete: [
+    'ナイス！いいスタートだね！👏',
+    'いいね！その調子！😊',
+    'よしよし、1つクリア！✨',
+    'いい感じ！まずは1歩！🚶',
+    'おっ、やるじゃん！👍✨',
+    'いいねいいね！その調子！😆',
+  ],
+  // 2つ目のタスク完了
+  secondComplete: [
+    'いいペース！あと1つ！🔥',
+    'ナイス！もうすぐコンプリート！✨',
+    '順調だね！ラスト1つ！💪',
+    'いい感じ！ここまで来たね！😆',
+    'おぉ！あと1つだよ！🎯',
+    'いいねいいね！ラストスパート！🚀',
+  ],
+  // 3つ全部完了
+  allComplete: [
+    'パーフェクト！全部クリア！🎉🎉',
+    'すごい！今日のミッション完了！✨',
+    'やったー！全部終わったね！🥳',
+    'ナイスワーク！今日もいい1日！🌟',
+    'すごーい！コンプリート！🎊',
+    '最高！ミッション成功！🎉',
+  ],
+};
+
+// ランダムにメッセージを取得
+const getRandomMessage = (messages: string[]): string => {
+  return messages[Math.floor(Math.random() * messages.length)];
+};
+
 // スタイル
 const styles: { [key: string]: React.CSSProperties } = {
   container: {
@@ -437,6 +480,14 @@ export default function App() {
     setModal('none');
     resetForm();
     showMessage('タスクを追加しました！');
+
+    // キャラクターのセリフ
+    setCharacterMessage(getRandomMessage(CHARACTER_MESSAGES.taskAdded));
+    setCharacterExpression('happy');
+    setTimeout(() => {
+      setCharacterMessage(null);
+      setCharacterExpression('normal');
+    }, 3000);
   };
 
   // フォームリセット
@@ -465,19 +516,34 @@ export default function App() {
     // サブタスクを完了した場合
     if (completedCount > prevCompletedCount) {
       playCompleteSound();
-      showMessage('えらい！🎉');
-      setCharacterMessage('すごい！えらいね！');
-      setCharacterExpression('happy');
-      setTimeout(() => {
-        setCharacterMessage(null);
-        setCharacterExpression('normal');
-      }, 2500);
 
-      if (completedCount === 3) {
+      // 完了数に応じたキャラクターのセリフ
+      let characterMsg: string;
+      if (allCompleted || completedCount >= 3) {
+        // 全完了または3つ目
+        characterMsg = getRandomMessage(CHARACTER_MESSAGES.allComplete);
+      } else if (completedCount === 2) {
+        // 2つ目
+        characterMsg = getRandomMessage(CHARACTER_MESSAGES.secondComplete);
+      } else {
+        // 1つ目
+        characterMsg = getRandomMessage(CHARACTER_MESSAGES.firstComplete);
+      }
+
+      setCharacterMessage(characterMsg);
+      setCharacterExpression('happy');
+      showMessage(characterMsg);
+
+      if (!allCompleted) {
+        setTimeout(() => {
+          setCharacterMessage(null);
+          setCharacterExpression('normal');
+        }, 3000);
+      }
+
+      if (completedCount === 3 && !allCompleted) {
         setTimeout(() => {
           playFanfare();
-          setCharacterMessage('3つも終わったの！？');
-          showMessage('3つ完了！素晴らしい！✨');
         }, 500);
       }
     }

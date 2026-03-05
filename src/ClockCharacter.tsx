@@ -75,15 +75,14 @@ const ClockCharacter: React.FC<ClockCharacterProps> = ({
 
   return (
     <div
-      onClick={onClick}
+      onClick={modalOpen ? undefined : onClick}
       style={{
         position: 'fixed',
-        left: modalOpen ? 'auto' : '10px',
-        right: modalOpen ? '20px' : 'auto',
+        left: modalOpen ? 'calc(50% + 220px)' : '10px',
         bottom: modalOpen ? '50%' : '80px',
-        width: '100px',
-        height: '130px',
-        cursor: 'pointer',
+        width: '130px',
+        height: '170px',
+        cursor: modalOpen ? 'default' : 'pointer',
         zIndex: 1100,
         transform: `translateY(${modalOpen ? '50%' : '0'}) translateY(${bounceY}px) rotate(${bounceRotate}deg)`,
         transition: 'all 0.4s ease',
@@ -91,8 +90,8 @@ const ClockCharacter: React.FC<ClockCharacterProps> = ({
     >
       <svg
         viewBox="0 0 100 120"
-        width="100"
-        height="120"
+        width="130"
+        height="156"
         style={{ overflow: 'visible' }}
       >
         {/* 影 */}
