@@ -424,7 +424,7 @@ export default function App() {
         }}>
           <div>
             <h1 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#1F2937', margin: 0 }}>
-              Task Dashboard
+              DevDash
             </h1>
             <p style={{ fontSize: '0.8rem', color: '#6B7280', margin: 0 }}>{today}</p>
           </div>
